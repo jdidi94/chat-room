@@ -10,7 +10,7 @@ exports.hello=async function  (req, res){
 
 
 exports.signUp= async function (req, res)  {
-    console.log("hello")
+    // console.log("hello")
       try {
      console.log(req.body)
       const salt = bcrypt.genSaltSync(saltRounds);
@@ -20,13 +20,11 @@ exports.signUp= async function (req, res)  {
       });
       const user = new User({
         name: req.body.name,
-        bio: req.body.bio,
-        phone: req.body.phone,
         email: req.body.email,
         password: hash,
       });
       const t=  await user.save()
-      console.log( 'hellllllllllllllllllllllllllllll',t)
+      // console.log( 'hellllllllllllllllllllllllllllll',t)
       if (t) {
         res.send({
           user: t,
@@ -67,3 +65,49 @@ exports.signUp= async function (req, res)  {
     }
   }
 
+exports.getUser= async function  (req, res)  {
+
+    try {
+      const token = req.headers.authorization.split(" ")[1];
+      const email = jwt.verify(token, config.secret);
+      const user = await User.findOne(
+        { email: email.email }
+      );
+      res.send({ user: user, type: "artist" });
+    } catch (err) {
+      res.send(err);
+    }
+ 
+}
+exports.useredit = async function  (req, res)  {
+
+  try{
+     if(req.body.password!==""){
+      const salt = bcrypt.genSaltSync(saltRounds);
+      const hash = bcrypt.hashSync(req.body.password, salt);
+      const user = await User.findByIdAndUpdate(
+        { _id: req.params.id }, {$set: { 
+          name: req.body.name,
+          bio:req.body.bio,
+          phone:req.body.phone,
+          email: req.body.email,
+          password:hash, 
+          photo:req.body.photo,
+         }})
+        res.send({ user: user,message:"the password updated with data"})
+     }
+     else{
+      const user = await User.findOneAndUpdate(
+        { _id: req.params.id },{$set:{ 
+          name: req.body.name,
+          bio:req.body.bio,
+          phone:req.body.phone,
+          email: req.body.email,
+          photo:req.body.photo,
+        }}) 
+        res.send({ user:"updated"})
+     }
+  }catch(err){
+    res.send(err)
+  }
+}
