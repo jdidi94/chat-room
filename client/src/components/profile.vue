@@ -3,12 +3,12 @@
     <div class="dropdown">
       <button class="dropbtn">
         <img
-          v-if="photo === ''"
+          v-if="user.photo === ''"
           class="photo"
           src="https://t3.ftcdn.net/jpg/03/46/83/96/360_F_346839683_6nAPzbhpSkIpb8pmAwufkC7c5eD7wYws.jpg"
         />
-        <img v-if="photo !== ''" class="photo" :src="user.photo" />
-        {{user.name}}
+        <img v-if="user.photo !== true" class="photo" :src="user.photo" />
+        {{ user.name }}
       </button>
       <div class="dropdown-content">
         <div class="icon">
@@ -17,7 +17,8 @@
         </div>
         <div class="icon">
           <span class="material-icons"> groups </span>
-          <a href="#">group chat</a>
+
+          <a><router-link to="/chat">group chat</router-link></a>
         </div>
         <div class="icon">
           <span class="material-icons"> logout </span>
@@ -40,11 +41,15 @@
           <td class="photo_profile">photo</td>
           <td class="button_edit">
             <img
-              v-if="photo === ''"
+              v-if="user.photo === ''"
               class="photo_profile"
               src="https://t3.ftcdn.net/jpg/03/46/83/96/360_F_346839683_6nAPzbhpSkIpb8pmAwufkC7c5eD7wYws.jpg"
             />
-            <img v-if="photo !== ''" class="photo_profile" :src="user.photo" />
+            <img
+              v-if="user.photo !== ''"
+              class="photo_profile"
+              :src="user.photo"
+            />
           </td>
         </tr>
         <tr class="col_tr">
@@ -76,19 +81,19 @@
         </div>
         <div class="profile-div">
           <img
-            v-if="photo === ''"
+            v-if="user.photo === ''"
             class="img-div"
             id="blah"
             src="https://t3.ftcdn.net/jpg/03/46/83/96/360_F_346839683_6nAPzbhpSkIpb8pmAwufkC7c5eD7wYws.jpg  "
           />
           <img
-            v-if="photo !== ''"
+            v-if="user.photo !== ''"
             class="img-div"
             id="blah"
             :src="user.photo"
           />
           <div class="overlay">
-            <input id="file" type="file"  v-on:change="uploadPhoto()"/>
+            <input id="imgInp" type="file" @change="uploadPhoto" />
             <p class="para-pic">Change Picture</p>
           </div>
         </div>
@@ -172,8 +177,9 @@ import swal from "sweetalert";
 export default {
   data() {
     return {
+      showPhoto: false,
       show: false,
-      user: null,
+      user: {},
       name: "",
       bio: "",
       phone: "",
@@ -181,33 +187,49 @@ export default {
       repeatPassword: "",
       email: "",
       photo: "",
+      selected: "",
+      has_special: false,
+      has_number: false,
     };
   },
+
   methods: {
+    showphoto() {
+      if (this.photo === "") {
+        return this.showPhoto === true;
+      } else {
+        return this.showPhoto === false;
+      }
+    },
     click() {
       this.show = !this.show;
     },
-    logOut(){
-        localStorage.removeItem("token");
-        this.$router.push("/");
+
+    logOut() {
+      localStorage.removeItem("token");
+      this.$router.push("/");
     },
-    uploadPhoto() {
-      
-      this.file = this.$refs.file.files[0];
-      console.log("ahahaha", this.file);
+    uploadPhoto(event) {
+      event.preventDefault();
+      this.selected = event.target.files[0];
+      console.log("ahahaha", this.selected);
       const image = new FormData();
-      image.append("file", this.file);
-      image.append("upload_preset", "unk3ryyl");
+      image.append("file", this.selected);
+      image.append("upload_preset", "fvzq7qqo");
       axios
         .post("https://api.cloudinary.com/v1_1/dkcwqbl9d/image/upload", image)
         .then(({ data }) => {
           console.log("imageId", this.photo);
-          this.photo= data.url;
+          this.photo = data.url;
+          this.showPhoto = true;
           console.log("this.is user image :", this.photo);
+
+          this.showphoto();
         })
         .catch((err) => console.log(err));
     },
-    editUser() {
+    editUser(event) {
+      event.preventDefault();
       this.has_special = /[!@#%*+=._-]/.test(this.password);
       this.has_number = /\d/.test(this.password);
 
@@ -215,8 +237,7 @@ export default {
         this.name === "" ||
         this.password === "" ||
         this.repeatPassword === "" ||
-        this.email === "" 
-    
+        this.email === ""
       ) {
         swal("Oops!", "Empty fields", "error");
       } else if (!this.has_special && this.has_number) {
@@ -257,6 +278,7 @@ export default {
   },
   mounted() {
     this.getUser();
+    this.showphoto();
   },
 };
 </script>

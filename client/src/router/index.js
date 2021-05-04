@@ -10,6 +10,10 @@ const routes = [
     component: () => import("@/components/LandingPage.vue"),
   },
   {
+    path:"/chat",
+    component: () => import("@/components/chat.vue"),
+  },
+  {
     path:"/profile",
     component: () => import("@/components/profile.vue"),
   },
