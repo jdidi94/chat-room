@@ -1,24 +1,8 @@
 <template>
   <div class="chat-container">
-    <!-- channel container -->
-    <div
-      v-if="show === false"
-      style="background:black"
-      class="channel-container"
-    >
-      <a @click="click()" class="channels_link">
-        <i class="arrow left"></i> All channels</a
-      >
-    </div>
-    <div style="background:black" class="title-container">
-      <h3>{{oneRoom.group_name}}</h3>
-    </div>
+  
     <!-- create one room -->
-    <div
-      v-if="show === true"
-      style="background:black"
-      class="channel-container"
-    >
+    <div style="background:black" class="channel-container">
       <p class="one_channels">Channels</p>
       <button
         type="button"
@@ -30,31 +14,11 @@
         +
       </button>
     </div>
-    <!-- one group container -->
-    <div v-if="show === false" style="background:black" class="group-container">
-      <div class="description_div">
-        <h4 class="title_room">{{oneRoom.group_name}}</h4>
-        <p class="description">
-           {{oneRoom.description}}
-        </p>
-      </div>
+ 
 
-      <div class="div_members">
-        <div class="title_member">Members</div>
-        <div      v-for="user in roomUsers"
-            :key="user._id"  class="member">
-          <img
-            :src="user.photo"
-            class="member_img"
-          />
-          <h5 class="name_member">{{user.name}}</h5>
-        </div>
-     
-      </div>
-    </div>
     <!-- group container -->
 
-    <div v-if="show === true" style="background:black" class="group-container">
+    <div style="background:black" class="group-container">
       <input
         class="inputs_groups"
         name="search"
@@ -71,10 +35,16 @@
             :key="room.group_name"
             class="member"
           >
-            <div @click="currentRoomId(room._id)" style="background:#1e90ff" class="group_logo">
+            <div
+              @click="sharedata(room._id)"
+              style="background:#1e90ff"
+              class="group_logo"
+            >
               {{ room.group_name.toUpperCase().slice(0, 1) }}
             </div>
-            <h5  @click="currentRoomId(room._id)" class="name_member">{{ room.group_name }}</h5>
+            <h5 @click="sharedata(room._id)" class="name_member">
+              {{ room.group_name }}
+            </h5>
           </div>
         </div>
       </div>
@@ -96,36 +66,7 @@
     </div>
     <!-- chat form  -->
     <div style="background:black" class="chat-form">
-      <div class="lines">
-        <hr class="hr_left" />
-        <p class="time_line">today at 5sdcczqxzdxazdpm</p>
-        <hr class="hr_right" />
-      </div>
-
-      <div class="lines">
-        <hr class="hr_left" />
-        <p class="time_line">today at m</p>
-        <hr class="hr_right" />
-      </div>
-
-      <div class="content_message">
-        <img
-          src="https://griffonagedotcom.files.wordpress.com/2016/07/profile-modern-2e.jpg"
-          class="message_photo"
-        />
-        <div class="message_info">
-          <div class="name_date">
-            <h5 class="message_name">jdidi daoud</h5>
-            <h6 class="message_date">10 jan 2019 13:00am</h6>
-          </div>
-          <p class="message">
-            hi samira how are im here what are you doig , i hope everyrithing is
-            collés&éesuçà^é n&"edçijhzdjàçzidjéàz edçjàué" "àçué"djç
-            ç"eçàé"dfàçuézedjiçzdjçàaézdjéaçzjàdé"adjéàçdféajc djàéçadu éaçdjué&
-            çà
-          </p>
-        </div>
-      </div>
+      
     </div>
     <div style="background:black" class="new-message-container">
       <div class="Icon-inside">
@@ -218,34 +159,15 @@ export default {
       description: "",
       show: false,
       search: "",
-      oneRoom:{},
-      roomUsers:[],
-      currentId:0
-    
+  
     };
   },
   methods: {
-  getAllUsersForOneRoom(Id){
-    if(Id===0){
-      return 
-    }
-    
-   axios.get(`http://localhost:3000/api/room/${Id}`)
-   .then(({data}) => {
-     console.log("one room with all users",data)
-    this.oneRoom=data.room,
-    this.roomUsers=data.users
-    console.log( "this is one room",this.oneRoom)
-   }).catch((err)=>{
-     console.log(err)
-   })
-  },
-  currentRoomId(id){
-  this.currentId=id
-  this.getAllUsersForOneRoom(this.currentId)
-  this.show=false
-  },
-
+    sharedata(id) {
+      this.$router.push({
+        path: `/room/${id}`,
+      });
+    },
 
     getALLRooms() {
       axios
@@ -290,21 +212,9 @@ export default {
           });
       }
     },
-    click() {
-      this.show = !this.show;
-    },
-    pop() {
-      document.getElementById("popup").style.display = "block";
-      document.getElementById("popup").style.visibility = "visible";
-    },
-    hide() {
-      document.getElementById("popup").style.display = "none";
-    },
+ 
   },
   computed: {
-
-
-
     filteredList() {
       return this.allRooms.filter((room) => {
         return room.group_name
@@ -314,11 +224,8 @@ export default {
     },
   },
 
-
   mounted() {
     this.getALLRooms();
-         this.getAllUsersForOneRoom(this.currentId)
-
   },
 };
 </script>

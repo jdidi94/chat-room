@@ -1,84 +1,34 @@
 <template>
   <div class="chat-container">
     <!-- channel container -->
-    <div
-      v-if="show === false"
-      style="background:black"
-      class="channel-container"
-    >
-      <a @click="click()" class="channels_link">
-        <i class="arrow left"></i> All channels</a
-      >
+    <div style="background:black" class="channel-container">
+      <router-link to="/chat"><a class="channels_link">
+       <i class="arrow left"></i> All
+        channels </a
+      ></router-link>
     </div>
     <div style="background:black" class="title-container">
-      <h3>{{oneRoom.group_name}}</h3>
+      <h3>{{ oneRoom.group_name }}</h3>
     </div>
-    <!-- create one room -->
-    <div
-      v-if="show === true"
-      style="background:black"
-      class="channel-container"
-    >
-      <p class="one_channels">Channels</p>
-      <button
-        type="button"
-        class="btn btn-primary"
-        data-toggle="modal"
-        data-target="#exampleModal"
-        data-whatever="@getbootstrap"
-      >
-        +
-      </button>
-    </div>
-    <!-- one group container -->
-    <div v-if="show === false" style="background:black" class="group-container">
+
+    <div style="background:black" class="group-container">
       <div class="description_div">
-        <h4 class="title_room">{{oneRoom.group_name}}</h4>
+        <h4 class="title_room">{{ oneRoom.group_name }}</h4>
         <p class="description">
-           {{oneRoom.description}}
+          {{ oneRoom.description }}
         </p>
       </div>
 
       <div class="div_members">
         <div class="title_member">Members</div>
-        <div      v-for="user in roomUsers"
-            :key="user._id"  class="member">
-          <img
-            :src="user.photo"
-            class="member_img"
-          />
-          <h5 class="name_member">{{user.name}}</h5>
+        <div v-for="user in roomUsers" :key="user._id" class="member">
+          <img :src="user.photo" class="member_img" />
+          <h5 class="name_member">{{ user.name }}</h5>
         </div>
-     
       </div>
     </div>
-    <!-- group container -->
+  
 
-    <div v-if="show === true" style="background:black" class="group-container">
-      <input
-        class="inputs_groups"
-        name="search"
-        type="text"
-        maxlength="50"
-        rows="4"
-        placeholder="search"
-        v-model="search"
-      />
-      <div>
-        <div class="div_members">
-          <div
-            v-for="room in filteredList"
-            :key="room.group_name"
-            class="member"
-          >
-            <div @click="currentRoomId(room._id)" style="background:#1e90ff" class="group_logo">
-              {{ room.group_name.toUpperCase().slice(0, 1) }}
-            </div>
-            <h5  @click="currentRoomId(room._id)" class="name_member">{{ room.group_name }}</h5>
-          </div>
-        </div>
-      </div>
-    </div>
     <!-- profile container -->
     <div style="background:black" class="profile-container">
       <div class="dropup">
@@ -136,189 +86,40 @@
       </div>
     </div>
 
-    <!-- popup cto create room -->
 
-    <div
-      class="modal fade"
-      id="exampleModal"
-      tabindex="-1"
-      role="dialog"
-      aria-labelledby="exampleModalLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">New Channel</h5>
-            <button
-              type="button"
-              class="close"
-              data-dismiss="modal"
-              aria-label="Close"
-            >
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <form>
-              <div class="form-group">
-                <label for="recipient-name" class="col-form-label"
-                  >Room name</label
-                >
-                <input
-                  v-model="group_name"
-                  type="text"
-                  class="form-control"
-                  id="recipient-name"
-                />
-              </div>
-              <div class="form-group">
-                <label for="message-text" class="col-form-label"
-                  >Description</label
-                >
-                <textarea
-                  v-model="description"
-                  class="form-control"
-                  id="message-text"
-                ></textarea>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-dismiss="modal"
-            >
-              Close
-            </button>
-            <button
-              type="button"
-              class="btn btn-primary"
-              @click="create_room()"
-            >
-              save
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+  
   </div>
 </template>
 <script>
 import axios from "axios";
-import swal from "sweetalert";
+
 export default {
   data() {
     return {
-      allRooms: [],
-      users: [],
-      currentUser: [],
-      group_name: "",
-      description: "",
-      show: false,
-      search: "",
-      oneRoom:{},
-      roomUsers:[],
-      currentId:0
-    
+      oneRoom: {},
+      roomUsers: [],
+      currentId: null,
     };
   },
   methods: {
-  getAllUsersForOneRoom(Id){
-    if(Id===0){
-      return 
-    }
-    
-   axios.get(`http://localhost:3000/api/room/${Id}`)
-   .then(({data}) => {
-     console.log("one room with all users",data)
-    this.oneRoom=data.room,
-    this.roomUsers=data.users
-    console.log( "this is one room",this.oneRoom)
-   }).catch((err)=>{
-     console.log(err)
-   })
-  },
-  currentRoomId(id){
-  this.currentId=id
-  this.getAllUsersForOneRoom(this.currentId)
-  this.show=false
-  },
+    getAllUsersForOneRoom() {
+      this.currentId = this.$route.params.id;
 
-
-    getALLRooms() {
       axios
-        .get("http://localhost:3000/api/room/")
+        .get(`http://localhost:3000/api/room/${this.currentId}`)
         .then(({ data }) => {
-          this.allRooms = data;
-          console.log("all rooms", this.allRooms);
+          console.log("one room with all users", data);
+          (this.oneRoom = data.room), (this.roomUsers = data.users);
+          console.log("this is one room", this.oneRoom);
         })
         .catch((err) => {
           console.log(err);
         });
     },
-    create_room() {
-      if (this.description === "" || this.group_name === "") {
-        swal("Oops!", "Empthy field", "error");
-      } else {
-        const token = localStorage.getItem("token");
-        const headers = { headers: { Authorization: `Bearer ${token}` } };
-        axios
-          .get("http://localhost:3000/api/user/", headers)
-          .then(({ data }) => {
-            this.currentUser = data.user;
-            console.log("USERAFTER", this.currentUser);
-          })
-
-          .then(() => {
-            this.users.push(this.currentUser._id);
-            const data = {
-              users: this.users,
-              group_name: this.group_name,
-              description: this.description,
-            };
-            axios
-              .post("http://localhost:3000/api/room/", data)
-              .then(({ data }) => {
-                console.log("the post is done", data);
-                swal("Succefully posted", "success");
-              });
-          })
-          .catch((err) => {
-            console.log(err);
-          });
-      }
-    },
-    click() {
-      this.show = !this.show;
-    },
-    pop() {
-      document.getElementById("popup").style.display = "block";
-      document.getElementById("popup").style.visibility = "visible";
-    },
-    hide() {
-      document.getElementById("popup").style.display = "none";
-    },
   },
-  computed: {
-
-
-
-    filteredList() {
-      return this.allRooms.filter((room) => {
-        return room.group_name
-          .toLowerCase()
-          .includes(this.search.toLowerCase());
-      });
-    },
-  },
-
 
   mounted() {
-    this.getALLRooms();
-         this.getAllUsersForOneRoom(this.currentId)
-
+    this.getAllUsersForOneRoom();
   },
 };
 </script>
@@ -444,13 +245,7 @@ export default {
   box-shadow: inset 0 0 5px grey;
   border-radius: 10px;
 }
-/* ::-webkit-scrollbar-thumb {
-  background: red; 
-  border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #b30000; 
-} */
+
 .lines {
   display: flex;
 
@@ -496,8 +291,7 @@ export default {
 .message_date {
   font-size: 10px;
 }
-.message {
-}
+
 
 /* group chat  memeber */
 .description_div {
@@ -510,8 +304,7 @@ export default {
 .description {
   font-size: 15px;
 }
-.div_members {
-}
+
 .title_member {
   padding: 5px 10px 20px 10px;
 }
@@ -532,8 +325,7 @@ export default {
 
   border-radius: 5px;
 }
-.description {
-}
+
 
 .chat-container {
   display: grid;
@@ -605,6 +397,8 @@ export default {
 .channels_link {
   font-size: 20px;
   cursor: pointer;
+  text-decoration: none !important;
+  color: white;
 }
 
 .new_message {
@@ -618,6 +412,7 @@ export default {
   padding-right: 60px;
   border-radius: 7px;
   font-size: 20px;
+  color: white;
 }
 ::placeholder {
   color: white;
@@ -641,34 +436,5 @@ export default {
   border-radius: 7px;
   cursor: pointer;
 }
-/* .search-container .conversation-list .new-message-container {
-  background: black;
-}
-.search-container {
-  grid-area: search-container;
-  border-radius: 10px 0 0 0;
-  box-shadow: 0 1px 3px -1px rgba(0, 0, 0, 0.75);
-  z-index: 1;
-}
-.new-message-container {
-  grid-area: new-message-container;
-  border-top: 1px solid white;
-  border-radius: 0 0 0 10px;
-}
-.conversation-list {
-  grid-area: conversation-container;
-}
-.chat-title .chat-form {
-  background: #000000;
-}
-.chat-title {
-  grid-area: chat-title;
-}
-.chat-form {
-  grid-area: chat-form;
-}
 
-.chat-message-list {
-  grid-area: chat-message-list;
-} */
 </style>
