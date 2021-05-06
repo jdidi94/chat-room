@@ -1,31 +1,27 @@
 const mongoose = require("mongoose");
+const User = require("../models/user.js");
 
 
-mongoose.Promise = global.Promise;
 const  MessageSchema = new mongoose.Schema({
     send: {
         type:mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
+    
+    room: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Room',
 
+    },
     message: {
         type: String,
         required: true
     },
     date: {
-        type: Date
+        type: Date, default:Date.now
     },
-    created_by: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    thread: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Room',
-        required: true
-    },
+
 
 },{ timestamps: true });
 const Message = mongoose.model('Message', MessageSchema);

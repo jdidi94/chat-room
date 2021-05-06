@@ -17,7 +17,7 @@ const routes = [
     path:"/profile",
     component: () => import("@/components/profile.vue"),
   },
-
+  
 ]
 
 const router = new VueRouter({

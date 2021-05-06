@@ -3,26 +3,26 @@
     <div class="dropdown">
       <button class="dropbtn">
         <img
-          v-if="user.photo === ''"
+          v-if="photo === ''"
           class="photo"
           src="https://t3.ftcdn.net/jpg/03/46/83/96/360_F_346839683_6nAPzbhpSkIpb8pmAwufkC7c5eD7wYws.jpg"
         />
-        <img v-if="user.photo !== true" class="photo" :src="user.photo" />
+        <img v-if="photo !==''" class="photo" :src="user.photo" />
         {{ user.name }}
       </button>
       <div class="dropdown-content">
         <div class="icon">
           <span class="material-icons"> account_circle </span>
-          <a href="#">profile</a>
+          <a class="routes" href="#">profile</a>
         </div>
         <div class="icon">
           <span class="material-icons"> groups </span>
 
-          <a><router-link to="/chat">group chat</router-link></a>
+          <a class="routes"><router-link to="/chat">group chat</router-link></a>
         </div>
         <div class="icon">
           <span class="material-icons"> logout </span>
-          <a href="#" @click="logOut()">log out</a>
+          <a  class="routes" href="#" @click="logOut()">log out</a>
         </div>
       </div>
     </div>
@@ -41,12 +41,12 @@
           <td class="photo_profile">photo</td>
           <td class="button_edit">
             <img
-              v-if="user.photo === ''"
+              v-if="photo === ''"
               class="photo_profile"
               src="https://t3.ftcdn.net/jpg/03/46/83/96/360_F_346839683_6nAPzbhpSkIpb8pmAwufkC7c5eD7wYws.jpg"
             />
             <img
-              v-if="user.photo !== ''"
+              v-if="photo !== ''"
               class="photo_profile"
               :src="user.photo"
             />
@@ -81,16 +81,16 @@
         </div>
         <div class="profile-div">
           <img
-            v-if="user.photo === ''"
+            v-if="photo === ''"
             class="img-div"
             id="blah"
             src="https://t3.ftcdn.net/jpg/03/46/83/96/360_F_346839683_6nAPzbhpSkIpb8pmAwufkC7c5eD7wYws.jpg  "
           />
           <img
-            v-if="user.photo !== ''"
+            v-if="photo !== ''"
             class="img-div"
             id="blah"
-            :src="user.photo"
+            :src="photo"
           />
           <div class="overlay">
             <input id="imgInp" type="file" @change="uploadPhoto" />
@@ -219,17 +219,17 @@ export default {
       axios
         .post("https://api.cloudinary.com/v1_1/dkcwqbl9d/image/upload", image)
         .then(({ data }) => {
-          console.log("imageId", this.photo);
+          // console.log("imageId", this.photo);
           this.photo = data.url;
           this.showPhoto = true;
-          console.log("this.is user image :", this.photo);
+          // console.log("this.is user image :", this.photo);
 
           this.showphoto();
         })
         .catch((err) => console.log(err));
     },
-    editUser(event) {
-      event.preventDefault();
+    editUser() {
+  
       this.has_special = /[!@#%*+=._-]/.test(this.password);
       this.has_number = /\d/.test(this.password);
 
@@ -260,7 +260,7 @@ export default {
         axios
           .patch(`http://localhost:3000/api/user/${this.user._id}`, data)
           .then(({ data }) => {
-            console.log("user id ", data);
+            // console.log("user id ", data);
             swal("Welcome", "success");
             this.getUser();
           });
@@ -272,7 +272,7 @@ export default {
       axios.get("http://localhost:3000/api/user/", headers).then(({ data }) => {
         // console.log("USERBEFORE", this.user);
         this.user = data.user;
-        console.log("USERAFTER", this.user);
+        // console.log("USERAFTER", this.user);
       });
     },
   },
@@ -349,6 +349,9 @@ export default {
   margin: auto;
 }
 .container {
+  display: grid;
+  justify-content: center;
+  align-items: center;
   min-width: 500px;
 
   max-height: 600px;
@@ -413,7 +416,7 @@ table tr {
 }
 table {
   border-radius: 20px;
-  margin-left: 36%;
+
 }
 .dropbtn {
   color: black;
@@ -427,7 +430,7 @@ table {
 .dropdown {
   font-family: "Poppins", sans-serif;
   float: right;
-  margin: 20px 20px;
+  margin: 20px 40px;
 }
 
 .dropdown-content {
@@ -439,12 +442,12 @@ table {
   box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
   z-index: 1;
   border-radius: 20px;
-  text-align: center;
+ 
 }
 
 .dropdown-content a {
   color: grey;
-  padding: 10px;
+
   text-decoration: none;
   display: block;
 }
@@ -470,8 +473,14 @@ table {
   border-radius: 50%;
 }
 .icon {
-  display: flex;
-  gap: 1px;
+display:grid;
+grid:"material-icons routes"40px;
+width:100%
+}
+.span{
+  top:0;
+  grid-area:material-icons
+
 }
 .profile-div {
   margin: 20px 50px;

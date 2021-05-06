@@ -8,14 +8,11 @@ var MsgThreadSchema = new mongoose.Schema({
     group_name: {
         type: String
     },
-    created_by: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+ description: {
+        type: String
     },
 
-    image_url: {
-        type: String
-    }
+ 
 }, { timestamps: true });
 
 const Room = mongoose.model('Room', MsgThreadSchema);
