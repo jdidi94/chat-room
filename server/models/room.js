@@ -8,7 +8,7 @@ var MsgThreadSchema = new mongoose.Schema({
     group_name: {
         type: String
     },
- description: {
+     description: {
         type: String
     },
 

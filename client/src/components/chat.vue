@@ -1,6 +1,5 @@
 <template>
   <div class="chat-container">
-  
     <!-- create one room -->
     <div style="background:black" class="channel-container">
       <p class="one_channels">Channels</p>
@@ -14,7 +13,6 @@
         +
       </button>
     </div>
- 
 
     <!-- group container -->
 
@@ -30,13 +28,9 @@
       />
       <div>
         <div class="div_members">
-          <div
-            v-for="room in filteredList"
-            :key="room.group_name"
-            class="member"
-          >
+          <div v-for="room in filteredList" :key="room._id" class="member">
             <div
-              @click="sharedata(room._id)"
+              @click="sharedata(room._id, room)"
               style="background:#1e90ff"
               class="group_logo"
             >
@@ -52,32 +46,22 @@
     <!-- profile container -->
     <div style="background:black" class="profile-container">
       <div class="dropup">
-        <button class="dropbtn">jdidi daoud</button>
-        <img
-          class="photo"
-          src="https://t3.ftcdn.net/jpg/03/46/83/96/360_F_346839683_6nAPzbhpSkIpb8pmAwufkC7c5eD7wYws.jpg"
-        />
+        <button class="dropbtn">{{ currentUser.name }}</button>
+        <img class="photo" :src="currentUser.photo" />
         <div class="dropup-content">
-          <a href="#"> profile</a>
+          <a> profile</a>
 
-          <a href="#">log out</a>
+          <a @click="logOut()">log out</a>
         </div>
       </div>
     </div>
     <!-- chat form  -->
-    <div style="background:black" class="chat-form">
-      
-    </div>
+    <div style="background:black" class="chat-form"></div>
     <div style="background:black" class="new-message-container">
-      <div class="Icon-inside">
-        <input class="new_message" type="text" placeholder="type a message" />
-        <span class="material-icons">
-          send
-        </span>
-      </div>
+ 
     </div>
 
-    <!-- popup cto create room -->
+    <!-- popup create room -->
 
     <div
       class="modal fade"
@@ -149,17 +133,18 @@
 <script>
 import axios from "axios";
 import swal from "sweetalert";
+import * as io from 'socket.io-client'
 export default {
   data() {
     return {
       allRooms: [],
       users: [],
-      currentUser: [],
+      currentUser: {},
       group_name: "",
       description: "",
       show: false,
       search: "",
-  
+      socket:io('http://localhost:4000')
     };
   },
   methods: {
@@ -169,6 +154,10 @@ export default {
       });
     },
 
+    logOut() {
+      localStorage.removeItem("token");
+      this.$router.push("/");
+    },
     getALLRooms() {
       axios
         .get("http://localhost:3000/api/room/")
@@ -184,35 +173,34 @@ export default {
       if (this.description === "" || this.group_name === "") {
         swal("Oops!", "Empthy field", "error");
       } else {
-        const token = localStorage.getItem("token");
-        const headers = { headers: { Authorization: `Bearer ${token}` } };
+        this.users.push(this.currentUser._id);
+        // console.log("this.c",this.users)
+        const data = {
+          users: this.users,
+          group_name: this.group_name,
+          description: this.description,
+        };
         axios
-          .get("http://localhost:3000/api/user/", headers)
+          .post("http://localhost:3000/api/room/", data)
           .then(({ data }) => {
-            this.currentUser = data.user;
-            console.log("USERAFTER", this.currentUser);
-          })
-
-          .then(() => {
-            this.users.push(this.currentUser._id);
-            const data = {
-              users: this.users,
-              group_name: this.group_name,
-              description: this.description,
-            };
-            axios
-              .post("http://localhost:3000/api/room/", data)
-              .then(({ data }) => {
-                console.log("the post is done", data);
-                swal("Succefully posted", "success");
-              });
+            console.log("the post is done", data);
+            this.getALLRooms();
+            swal("Succefully posted", "success");
           })
           .catch((err) => {
             console.log(err);
           });
       }
     },
- 
+
+    getUser() {
+      const token = localStorage.getItem("token");
+      const headers = { headers: { Authorization: `Bearer ${token}` } };
+      axios.get("http://localhost:3000/api/user/", headers).then(({ data }) => {
+        this.currentUser = data.user;
+        console.log("currentuser", this.currentUser);
+      });
+    },
   },
   computed: {
     filteredList() {
@@ -225,6 +213,7 @@ export default {
   },
 
   mounted() {
+    this.getUser();
     this.getALLRooms();
   },
 };
@@ -351,13 +340,13 @@ export default {
   box-shadow: inset 0 0 5px grey;
   border-radius: 10px;
 }
-/* ::-webkit-scrollbar-thumb {
-  background: red; 
+::-webkit-scrollbar-thumb {
+  background: red;
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #b30000; 
-} */
+  background: #b30000;
+}
 .lines {
   display: flex;
 
@@ -514,68 +503,8 @@ export default {
   cursor: pointer;
 }
 
-.new_message {
-  color: white;
-  background: grey;
-  opacity: 0.5;
-  width: 100%;
-  height: 100%;
-  display: block;
-  padding-left: 60px;
-  padding-right: 60px;
-  border-radius: 7px;
-  font-size: 20px;
-}
-::placeholder {
-  color: white;
-  opacity: 1; /* Firefox */
-}
 
-.Icon-inside {
-  width: 80%;
-  height: 52px;
-  border-radius: 7px;
-  position: relative;
-}
-.material-icons {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  top: 0;
-  font-size: 50px;
-  color: white;
-  background-color: #1e90ff;
-  border-radius: 7px;
-  cursor: pointer;
-}
-/* .search-container .conversation-list .new-message-container {
-  background: black;
-}
-.search-container {
-  grid-area: search-container;
-  border-radius: 10px 0 0 0;
-  box-shadow: 0 1px 3px -1px rgba(0, 0, 0, 0.75);
-  z-index: 1;
-}
-.new-message-container {
-  grid-area: new-message-container;
-  border-top: 1px solid white;
-  border-radius: 0 0 0 10px;
-}
-.conversation-list {
-  grid-area: conversation-container;
-}
-.chat-title .chat-form {
-  background: #000000;
-}
-.chat-title {
-  grid-area: chat-title;
-}
-.chat-form {
-  grid-area: chat-form;
-}
 
-.chat-message-list {
-  grid-area: chat-message-list;
-} */
+
+
 </style>

@@ -3,11 +3,11 @@
     <div class="dropdown">
       <button class="dropbtn">
         <img
-          v-if="photo === ''"
+        v-if="user.photo===undefined"
           class="photo"
           src="https://t3.ftcdn.net/jpg/03/46/83/96/360_F_346839683_6nAPzbhpSkIpb8pmAwufkC7c5eD7wYws.jpg"
         />
-        <img v-if="photo !==''" class="photo" :src="user.photo" />
+        <img   v-if="user.photo!==undefined" class="photo" :src="user.photo" />
         {{ user.name }}
       </button>
       <div class="dropdown-content">
@@ -41,12 +41,12 @@
           <td class="photo_profile">photo</td>
           <td class="button_edit">
             <img
-              v-if="photo === ''"
+              v-if="user.photo===undefined"
               class="photo_profile"
               src="https://t3.ftcdn.net/jpg/03/46/83/96/360_F_346839683_6nAPzbhpSkIpb8pmAwufkC7c5eD7wYws.jpg"
             />
             <img
-              v-if="photo !== ''"
+             v-if="user.photo!==undefined"
               class="photo_profile"
               :src="user.photo"
             />
@@ -81,16 +81,16 @@
         </div>
         <div class="profile-div">
           <img
-            v-if="photo === ''"
+             v-if="user.photo===undefined"
             class="img-div"
             id="blah"
             src="https://t3.ftcdn.net/jpg/03/46/83/96/360_F_346839683_6nAPzbhpSkIpb8pmAwufkC7c5eD7wYws.jpg  "
           />
           <img
-            v-if="photo !== ''"
+            v-if="user.photo!==undefined"
             class="img-div"
             id="blah"
-            :src="photo"
+            :src="user.photo"
           />
           <div class="overlay">
             <input id="imgInp" type="file" @change="uploadPhoto" />
@@ -220,8 +220,8 @@ export default {
         .post("https://api.cloudinary.com/v1_1/dkcwqbl9d/image/upload", image)
         .then(({ data }) => {
           // console.log("imageId", this.photo);
-          this.photo = data.url;
-          this.showPhoto = true;
+          this.user.photo = data.url;
+          this.showPhoto =!this.showPhoto ;
           // console.log("this.is user image :", this.photo);
 
           this.showphoto();
@@ -255,7 +255,7 @@ export default {
           phone: this.phone,
           email: this.email,
           password: this.password,
-          photo: this.photo,
+          photo: this.user.photo,
         };
         axios
           .patch(`http://localhost:3000/api/user/${this.user._id}`, data)
@@ -263,6 +263,7 @@ export default {
             // console.log("user id ", data);
             swal("Welcome", "success");
             this.getUser();
+     
           });
       }
     },

@@ -53,9 +53,9 @@ exports.signUp= async function (req, res)  {
           var result=bcrypt.compareSync(password, user.password)
           if(result){
               var token=jwt.sign({email:email},config.secret,{expiresIn:"4h"},)
-              res.send({message:"success",auth:true,token:token,user:user})
+              res.send({message:"success",auth:true,token:token})
           }else{
-              res.send({message:"wrong password",auth:false,token:token ,user:user} )
+              res.send({message:"wrong password",auth:false,token:token} )
           }
       } else {
           res.send({message:"user not found",auth:false,token:null ,user:null})
@@ -73,7 +73,7 @@ exports.getUser= async function  (req, res)  {
       const user = await User.findOne(
         { email: email.email }
       );
-      res.send({ user: user, type: "artist" });
+      res.send({ user: user});
     } catch (err) {
       res.send(err);
     }
@@ -94,7 +94,7 @@ exports.useredit = async function  (req, res)  {
           password:hash, 
           photo:req.body.photo,
          }})
-        res.send({ user: user,message:"the password updated with data"})
+        res.send({message:"the password updated with data"})
      }
      else{
       const user = await User.findOneAndUpdate(

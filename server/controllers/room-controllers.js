@@ -20,12 +20,11 @@ exports.create_room= async function  (req, res)  {
 exports.update_users= async function  (req, res)  {
 
   try {
-
-   const room = await Room.findByIdAndUpdate({_id: req.params.id},{$set:{
-    users:req.body.users,
-
-  }})
-     res.send( room);
+     console.log(req.body)
+   const room = await Room.updateOne({_id: req.params.id},{$set:{
+    users:req.body.users }})
+    console.log(User.user)
+     res.send(room);
   } catch (err) {
     res.send(err);
   }

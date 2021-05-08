@@ -2,10 +2,11 @@
   <div class="chat-container">
     <!-- channel container -->
     <div style="background:black" class="channel-container">
-      <router-link to="/chat"><a class="channels_link">
-       <i class="arrow left"></i> All
-        channels </a
-      ></router-link>
+      <router-link to="/chat"
+        ><a class="channels_link">
+          <i class="arrow left"></i> All channels
+        </a></router-link
+      >
     </div>
     <div style="background:black" class="title-container">
       <h3>{{ oneRoom.group_name }}</h3>
@@ -17,6 +18,13 @@
         <p class="description">
           {{ oneRoom.description }}
         </p>
+        <button
+          type="button"
+          @click="beAMemeber()"
+          class="btn btn-outline-primary"
+        >
+          be a memeber
+        </button>
       </div>
 
       <div class="div_members">
@@ -27,20 +35,16 @@
         </div>
       </div>
     </div>
-  
 
     <!-- profile container -->
     <div style="background:black" class="profile-container">
       <div class="dropup">
-        <button class="dropbtn">jdidi daoud</button>
-        <img
-          class="photo"
-          src="https://t3.ftcdn.net/jpg/03/46/83/96/360_F_346839683_6nAPzbhpSkIpb8pmAwufkC7c5eD7wYws.jpg"
-        />
+        <button class="dropbtn">{{ user.name }}</button>
+        <img class="photo" :src="user.photo" />
         <div class="dropup-content">
-          <a href="#"> profile</a>
+          <a> profile</a>
 
-          <a href="#">log out</a>
+          <a @click="logOut()">log out</a>
         </div>
       </div>
     </div>
@@ -58,50 +62,117 @@
         <hr class="hr_right" />
       </div>
 
-      <div class="content_message">
-        <img
-          src="https://griffonagedotcom.files.wordpress.com/2016/07/profile-modern-2e.jpg"
-          class="message_photo"
-        />
+      <div
+        v-for="message in allMessages"
+        :key="message._id"
+        class="content_message"
+      >
+        <img :src="message.send.photo" class="message_photo" />
         <div class="message_info">
           <div class="name_date">
-            <h5 class="message_name">jdidi daoud</h5>
-            <h6 class="message_date">10 jan 2019 13:00am</h6>
+            <h5 class="message_name">{{ message.send.name }}</h5>
+            <h6 class="message_date">{{ currentDateTime(message.date) }}</h6>
           </div>
           <p class="message">
-            hi samira how are im here what are you doig , i hope everyrithing is
-            collés&éesuçà^é n&"edçijhzdjàçzidjéàz edçjàué" "àçué"djç
-            ç"eçàé"dfàçuézedjiçzdjçàaézdjéaçzjàdé"adjéàçdféajc djàéçadu éaçdjué&
-            çà
+            {{ message.message }}
           </p>
         </div>
       </div>
     </div>
     <div style="background:black" class="new-message-container">
-      <div class="Icon-inside">
-        <input class="new_message" type="text" placeholder="type a message" />
-        <span class="material-icons">
-          send
-        </span>
+      <div class="input-group mb-3">
+        <input
+          v-model="message"
+          type="text"
+          class="form-control"
+          placeholder="Type a message"
+          aria-label="Recipient's username"
+          aria-describedby="basic-addon2"
+        />
+        <div class="input-group-append">
+          <button class="btn btn-outline-secondary" type="button">
+            <span @click="create_message()" class="material-icons">send </span>
+          </button>
+        </div>
       </div>
     </div>
-
-
-  
   </div>
 </template>
 <script>
 import axios from "axios";
-
+import moment from "moment";
+import swal from "sweetalert";
+import * as io from "socket.io-client";
 export default {
   data() {
     return {
+      user: {},
       oneRoom: {},
       roomUsers: [],
+      allMessages: [],
       currentId: null,
+      message: "",
+      socket: io("http://localhost:4000"),
     };
   },
   methods: {
+    getUser() {
+      const token = localStorage.getItem("token");
+      const headers = { headers: { Authorization: `Bearer ${token}` } };
+      axios.get("http://localhost:3000/api/user/", headers).then(({ data }) => {
+        this.user = data.user;
+      });
+    },
+    beAMemeber() {
+      if (this.roomUsers.includes(this.user._id)) {
+        swal("Oops!", "you are a already a member ", "error");
+      } else if (!this.roomUsers.includes(this.user._id)) {
+        const users = this.roomUsers;
+        users.push(this.user._id);
+        console.log("roomusers)", this.roomUsers);
+        console.log("this.currentUser._id)", this.user._id);
+        console.log("users", users);
+        axios
+          .put(`http://localhost:3000/api/room/${this.oneRoom._id}`, {
+            users: users,
+          })
+          .then((data) => {
+            console.log("this from the create memeber", data);
+            this.getAllUsersForOneRoom();
+            swal("You are a member now", "success");
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
+    },
+
+    create_message() {
+      if (this.message === "") {
+        swal("Oops!", "Empty fields", "error");
+      } else {
+        this.currentId = this.$route.params.id;
+        const data = {
+          user: this.user._id,
+          room: this.currentId,
+          message: this.message,
+        };
+        axios
+          .post(`http://localhost:3000/api/message/`, data)
+          .then(({ data }) => {
+            console.log("message posted", data);
+            this.getAllMessagesForOneRoom();
+            this.message = "";
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
+    },
+
+    currentDateTime(date) {
+      return moment(date).format("MMMM Do YYYY, h:mm:ss a");
+    },
     getAllUsersForOneRoom() {
       this.currentId = this.$route.params.id;
 
@@ -109,8 +180,28 @@ export default {
         .get(`http://localhost:3000/api/room/${this.currentId}`)
         .then(({ data }) => {
           console.log("one room with all users", data);
-          (this.oneRoom = data.room), (this.roomUsers = data.users);
+          this.oneRoom = data.room;
+          this.roomUsers = data.users;
           console.log("this is one room", this.oneRoom);
+          console.log("all users in this room", this.roomUsers);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
+    
+
+    logOut() {
+      localStorage.removeItem("token");
+      this.$router.push("/");
+    },
+    getAllMessagesForOneRoom() {
+      this.currentId = this.$route.params.id;
+
+      axios
+        .get(`http://localhost:3000/api/message/${this.currentId}`)
+        .then(({ data }) => {
+          this.allMessages = data;
         })
         .catch((err) => {
           console.log(err);
@@ -118,13 +209,15 @@ export default {
     },
   },
 
-  mounted() {
+  created() {
+    this.getUser();
     this.getAllUsersForOneRoom();
+    this.getAllMessagesForOneRoom();
   },
 };
 </script>
 
-<style>
+<style scoped>
 .chat-form::-webkit-scrollbar-track {
   box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
   border-radius: 10px;
@@ -292,7 +385,6 @@ export default {
   font-size: 10px;
 }
 
-
 /* group chat  memeber */
 .description_div {
   padding: 20px 10px 10px 10px;
@@ -326,13 +418,12 @@ export default {
   border-radius: 5px;
 }
 
-
 .chat-container {
   display: grid;
   grid:
     "channel-container title-container" 60px
     "group-container    chat-form" 1fr
-    " profile-container   new-message-container" 78px
+    " profile-container  new-message-container" 78px
     /275px 1fr;
   font-family: "Poppins", sans-serif;
   width: 100%;
@@ -376,6 +467,9 @@ export default {
   align-items: center;
   grid-area: new-message-container;
   opacity: 0.8;
+  padding-left: 60px;
+  padding-right: 60px;
+  padding-top: 3%;
 }
 .chat-form {
   grid-area: chat-form;
@@ -401,7 +495,7 @@ export default {
   color: white;
 }
 
-.new_message {
+.input-group .mb-3 {
   color: white;
   background: grey;
   opacity: 0.5;
@@ -412,29 +506,32 @@ export default {
   padding-right: 60px;
   border-radius: 7px;
   font-size: 20px;
-  color: white;
+  color: grey;
 }
 ::placeholder {
-  color: white;
+  color: grey;
   opacity: 1; /* Firefox */
 }
 
-.Icon-inside {
-  width: 80%;
-  height: 52px;
+.form-control {
+  width: 20px;
+  height: 50px;
   border-radius: 7px;
   position: relative;
+ padding-left: 60px;
+  padding-right: 60px;
 }
-.material-icons {
+.btn .btn-outline-secondary .material-icons {
+  max-height: 100%;
+  max-width: 100%;
   position: absolute;
   bottom: 0;
-  right: 0;
+  right:0;
   top: 0;
-  font-size: 50px;
-  color: white;
-  background-color: #1e90ff;
+  font-size: 52px;
+  color: #1e90ff;
+  background: #1e90ff;
   border-radius: 7px;
   cursor: pointer;
 }
-
 </style>
