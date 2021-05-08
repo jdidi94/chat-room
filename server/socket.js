@@ -1,14 +1,17 @@
-var app = express();
-var server = require('http').createServer(app);
-var io = require('socket.io')(server);
-server.listen(4000);
-io.on('connection', function (socket) {
-    console.log('User connected');
-    socket.on('disconnect', function() {
-      console.log('User disconnected');
-    });
-    socket.on('save-message', function (data) {
-      console.log(data);
-      io.emit('new-message', { message: data });
-    });
+const socketio=require('socket.io')
+const express = require("express");
+const  app = express();
+const http=require('http')
+const server=http.createServer(app)
+const io=socketio(server)
+io.on("connection",socket=>{
+  console.log("new web socket")
+  socket.on('save-message', function (data) {
+  console.log(data);
+  io.emit('new-message', data);
+  
+  });
+})
+server.listen(4000, function () {
+    console.log("listening on port 4000!");
   });

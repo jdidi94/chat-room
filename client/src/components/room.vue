@@ -112,7 +112,8 @@ export default {
       allMessages: [],
       currentId: null,
       message: "",
-      socket: io("http://localhost:4000"),
+      newmessage: [],
+      socket: io.connect("http://localhost:4000"),
     };
   },
   methods: {
@@ -157,11 +158,19 @@ export default {
           room: this.currentId,
           message: this.message,
         };
+        this.socket.emit("save-message", {
+          send: this.user,
+          room: this.currentId,
+          message: this.message,
+          date: new Date(),
+        });
+
         axios
           .post(`http://localhost:3000/api/message/`, data)
           .then(({ data }) => {
             console.log("message posted", data);
-            this.getAllMessagesForOneRoom();
+            this.socket.emit("save-message");
+            // this.getAllMessagesForOneRoom();
             this.message = "";
           })
           .catch((err) => {
@@ -179,17 +188,16 @@ export default {
       axios
         .get(`http://localhost:3000/api/room/${this.currentId}`)
         .then(({ data }) => {
-          console.log("one room with all users", data);
+          // console.log("one room with all users", data);
           this.oneRoom = data.room;
           this.roomUsers = data.users;
-          console.log("this is one room", this.oneRoom);
-          console.log("all users in this room", this.roomUsers);
+          // console.log("this is one room", this.oneRoom);
+          // console.log("all users in this room", this.roomUsers);
         })
         .catch((err) => {
           console.log(err);
         });
     },
-    
 
     logOut() {
       localStorage.removeItem("token");
@@ -202,6 +210,7 @@ export default {
         .get(`http://localhost:3000/api/message/${this.currentId}`)
         .then(({ data }) => {
           this.allMessages = data;
+          // console.log("all massages",data)
         })
         .catch((err) => {
           console.log(err);
@@ -210,6 +219,15 @@ export default {
   },
 
   created() {
+    this.socket.on(
+      "new-message",
+      function(data) {
+        console.log("hiiiiiiiiiiiiiiii");
+        this.newmessage.push(data);
+        console.log("message data", data);
+        console.log("all messages", this.newmessage);
+      }.bind(this)
+    );
     this.getUser();
     this.getAllUsersForOneRoom();
     this.getAllMessagesForOneRoom();
@@ -518,7 +536,7 @@ export default {
   height: 50px;
   border-radius: 7px;
   position: relative;
- padding-left: 60px;
+  padding-left: 60px;
   padding-right: 60px;
 }
 .btn .btn-outline-secondary .material-icons {
@@ -526,7 +544,7 @@ export default {
   max-width: 100%;
   position: absolute;
   bottom: 0;
-  right:0;
+  right: 0;
   top: 0;
   font-size: 52px;
   color: #1e90ff;

@@ -3,11 +3,14 @@ const bodyParser = require("body-parser");
 const userRoutes = require("./routes/auth-routes")
 const roomRoutes = require("./routes/room_routes")
 const messageRoutes = require("./routes/message_routes")
-
+const  app = express();
 const cors = require('cors')
 const morgan = require("morgan");
+const socketio=require('socket.io')
+const http=require('http')
+const server=http.createServer(app)
+const io=socketio(server)
 
-const  app = express();
 app.use(morgan("combined"));
 app.use(cors())
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -18,7 +21,14 @@ const mongoUri = 'mongodb://localhost/pokemon';
 const db=mongoose.connect(mongoUri, {useNewUrlParser: true, useUnifiedTopology: true},()=>{
     console.log("hey i'm connected")
 })
-
+// io.on("connection",socket=>{
+//   console.log("new web socket")
+//   socket.on('save-message', function (data) {
+//   console.log(data);
+//   io.emit('new-message', { message: data });
+  
+//   });
+// })
 app.use(bodyParser.json());
 app.use("/api/user", userRoutes);
 app.use("/api/room", roomRoutes);

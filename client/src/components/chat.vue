@@ -57,9 +57,7 @@
     </div>
     <!-- chat form  -->
     <div style="background:black" class="chat-form"></div>
-    <div style="background:black" class="new-message-container">
- 
-    </div>
+    <div style="background:black" class="new-message-container"></div>
 
     <!-- popup create room -->
 
@@ -133,7 +131,7 @@
 <script>
 import axios from "axios";
 import swal from "sweetalert";
-import * as io from 'socket.io-client'
+import * as io from "socket.io-client";
 export default {
   data() {
     return {
@@ -144,7 +142,7 @@ export default {
       description: "",
       show: false,
       search: "",
-      socket:io('http://localhost:4000')
+      // socket: io("http://localhost:3000"),
     };
   },
   methods: {
@@ -212,7 +210,9 @@ export default {
     },
   },
 
+
   mounted() {
+
     this.getUser();
     this.getALLRooms();
   },
@@ -502,9 +502,4 @@ export default {
   font-size: 20px;
   cursor: pointer;
 }
-
-
-
-
-
 </style>

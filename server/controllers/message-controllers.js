@@ -11,7 +11,7 @@ exports.create_message= async function  (req, res)  {
       message:req.body.message,
  
     })
-    res.send("created");
+    res.send(message);
     } catch (err) {
       res.send(err);
     }
