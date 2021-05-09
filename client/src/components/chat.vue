@@ -1,5 +1,8 @@
 <template>
   <div class="chat-container">
+    <div style="background:black" class="title-container">
+      <h3>welcome {{currentUser.name}}</h3>
+    </div>
     <!-- create one room -->
     <div style="background:black" class="channel-container">
       <p class="one_channels">Channels</p>
@@ -45,19 +48,26 @@
     </div>
     <!-- profile container -->
     <div style="background:black" class="profile-container">
-      <div class="dropup">
-        <button class="dropbtn">{{ currentUser.name }}</button>
-        <img class="photo" :src="currentUser.photo" />
-        <div class="dropup-content">
-          <a> profile</a>
+      <div class="drop">
+        <img class="tof" :src="currentUser.photo" />
+        <button class="drop_button">{{ currentUser.name }}</button>
+        <div class="drop-content">
+         <router-link to="/profile">profile</router-link>
 
           <a @click="logOut()">log out</a>
         </div>
       </div>
     </div>
     <!-- chat form  -->
-    <div style="background:black" class="chat-form"></div>
-    <div style="background:black" class="new-message-container"></div>
+    <div style="background:black" class="chat-form">
+      <img
+        class="big_img"
+        src="https://modeling-languages.com/wp-content/uploads/2019/03/blog-banner-ai-powered-chatbot-1.png"
+      />
+    </div>
+    <div style="background:black" class="new-message-container">
+      <p class="one_channels">You are ready to type new message</p>
+    </div>
 
     <!-- popup create room -->
 
@@ -131,7 +141,7 @@
 <script>
 import axios from "axios";
 import swal from "sweetalert";
-import * as io from "socket.io-client";
+// import * as io from "socket.io-client";
 export default {
   data() {
     return {
@@ -210,9 +220,7 @@ export default {
     },
   },
 
-
   mounted() {
-
     this.getUser();
     this.getALLRooms();
   },
@@ -220,10 +228,21 @@ export default {
 </script>
 
 <style>
+.big_img {
+  width: 100%;
+  height: 100%;
+  padding: 10px 10px;
+  border-radius: 50px;
+  box-shadow: inset 0 0 10px rgba(230, 216, 216, 0.3);
+}
 .chat-form::-webkit-scrollbar-track {
   box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
   border-radius: 10px;
   background-color: #f5f5f5;
+}
+::placeholder {
+  color: white;
+  opacity: 1; /* Firefox */
 }
 /* all group container */
 .inputs_groups {
@@ -234,6 +253,7 @@ export default {
   font-size: 13px;
   width: 80%;
   background: grey;
+  border-radius: 5px;
 }
 .group_logo {
   display: flex;
@@ -276,62 +296,55 @@ export default {
 
 /*profile dropdown*/
 
-.dropbtn {
-  grid-area: dropbtn;
-
+.drop_button {
   color: white;
-
+  padding: 16px;
   font-size: 16px;
   border: none;
-  width: 100%;
-  height: 100%;
 }
 
-.dropup {
-  gap: 0;
-
-  display: grid;
-  grid: " photo dropbtn " 60px;
-  justify-items: center;
-  width: 100%;
+.drop {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
 }
 
-.dropup-content {
+.drop-content {
   display: none;
   position: absolute;
-  background-color: #f1f1f1;
+  background-color: grey;
   min-width: 160px;
-  bottom: 30px;
-  right: 30px;
-  left: 30px;
+  bottom: 50px;
   z-index: 1;
   border-radius: 5px;
 }
 
-.dropup-content a {
+.drop-content a {
   color: black;
   padding: 12px 16px;
   text-decoration: none;
   display: block;
-  border-radius: 5px;
 }
 
-.dropup-content a :hover {
-  background-color: grey;
+.drop-content a :hover {
+  background-color: white;
+  cursor: pointer;
+  color: grey;
 }
 
-.dropup:hover .dropup-content {
+.drop:hover .drop-content {
   display: block;
+  cursor: pointer;
 }
+/* 
+.drop:hover .drop_button {
+  background-color:red;
+} */
+.tof {
+  width: 50px;
+  height: 50px;
 
-.dropup:hover .dropbtn {
-  background-color: grey;
-}
-.photo {
-  grid-area: photo;
-  width: 60px;
-  height: 60px;
-  margin-right: 3px;
   border-radius: 5px;
 }
 
@@ -387,12 +400,9 @@ export default {
 
   border-radius: 5px;
 }
-.message_name {
-}
+
 .message_date {
   font-size: 10px;
-}
-.message {
 }
 
 /* group chat  memeber */
@@ -406,8 +416,7 @@ export default {
 .description {
   font-size: 15px;
 }
-.div_members {
-}
+
 .title_member {
   padding: 5px 10px 20px 10px;
 }
@@ -427,8 +436,6 @@ export default {
   height: 40px;
 
   border-radius: 5px;
-}
-.description {
 }
 
 .chat-container {
@@ -470,9 +477,11 @@ export default {
 }
 .profile-container {
   justify-content: center;
+  align-items: center;
   grid-area: profile-container;
   opacity: 0.5;
-  box-shadow: 5px 1px 5px -1px rgba(0, 0, 0, 0.75);
+  padding-top: 10px;
+  box-shadow: 5px 1px 5px -1px rgba(218, 210, 210, 0.75);
 }
 .new-message-container {
   display: flex;
@@ -484,7 +493,7 @@ export default {
 .chat-form {
   grid-area: chat-form;
   opacity: 0.8;
-  padding: 0px 120px 10px 100px;
+
   overflow-y: scroll;
 }
 /* channels box */

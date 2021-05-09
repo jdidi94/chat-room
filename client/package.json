@@ -17,6 +17,7 @@
     "socketio": "^1.0.0",
     "sweetalert": "^2.1.2",
     "vue": "^2.6.12",
+    "vue-chat-scroll": "^1.4.0",
     "vue-router": "^3.2.0",
     "vue-socket.io": "^3.0.10",
     "vuetify": "^2.4.0",

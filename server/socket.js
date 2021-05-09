@@ -9,7 +9,7 @@ io.on("connection",socket=>{
   socket.on('save-message', function (data) {
   console.log(data);
   io.emit('new-message', data);
-  
+  console.log(data)
   });
 })
 server.listen(4000, function () {

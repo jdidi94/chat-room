@@ -1,5 +1,6 @@
 <template>
   <div class="chat-container">
+    
     <!-- channel container -->
     <div style="background:black" class="channel-container">
       <router-link to="/chat"
@@ -38,27 +39,21 @@
 
     <!-- profile container -->
     <div style="background:black" class="profile-container">
-      <div class="dropup">
-        <button class="dropbtn">{{ user.name }}</button>
-        <img class="photo" :src="user.photo" />
-        <div class="dropup-content">
-          <a> profile</a>
+      <div class="drop">
+        <img class="tof" :src="user.photo" />
+        <button class="drop_button">{{ user.name }}</button>
+        <div class="drop-content">
+           <router-link to="/profile">profile</router-link>
 
           <a @click="logOut()">log out</a>
         </div>
       </div>
     </div>
     <!-- chat form  -->
-    <div style="background:black" class="chat-form">
+    <div style="background:black" class="chat-form" v-chat-scroll>
       <div class="lines">
         <hr class="hr_left" />
-        <p class="time_line">today at 5sdcczqxzdxazdpm</p>
-        <hr class="hr_right" />
-      </div>
-
-      <div class="lines">
-        <hr class="hr_left" />
-        <p class="time_line">today at m</p>
+        <p class="time_line">{{ timeDiffrenceLines }}</p>
         <hr class="hr_right" />
       </div>
 
@@ -110,10 +105,13 @@ export default {
       oneRoom: {},
       roomUsers: [],
       allMessages: [],
-      currentId: null,
+      currentId: "",
       message: "",
       newmessage: [],
-      socket: io.connect("http://localhost:4000"),
+      socket: io("http://localhost:4000"),
+      lastdate: "",
+      beforelastDate: "",
+      showDate: false,
     };
   },
   methods: {
@@ -158,20 +156,14 @@ export default {
           room: this.currentId,
           message: this.message,
         };
-        this.socket.emit("save-message", {
-          send: this.user,
-          room: this.currentId,
-          message: this.message,
-          date: new Date(),
-        });
 
         axios
           .post(`http://localhost:3000/api/message/`, data)
           .then(({ data }) => {
-            console.log("message posted", data);
-            this.socket.emit("save-message");
-            // this.getAllMessagesForOneRoom();
             this.message = "";
+            console.log("message posted", data);
+            this.getAllMessagesForOneRoom();
+            this.socket.emit("save-message", data);
           })
           .catch((err) => {
             console.log(err);
@@ -180,19 +172,36 @@ export default {
     },
 
     currentDateTime(date) {
-      return moment(date).format("MMMM Do YYYY, h:mm:ss a");
+      const dateNow = moment();
+      // return    moment(date).format('MMMM Do YYYY, h:mm:ss a');
+      if (dateNow.diff(date, "seconds") <= 60) {
+        return moment(date)
+          .startOf("seconds")
+          .fromNow();
+      } else if (dateNow.diff(date, "minutes") > 1) {
+        return moment(date)
+          .startOf("minutes")
+          .fromNow();
+      } else if (dateNow.diff(date, "hours") >= 1) {
+        return moment()
+          .endOf("day", "hours", "minutes")
+          .fromNow();
+      } else {
+        return moment(date).format("MMMM Do YYYY, h:mm:ss a");
+      }
     },
+ 
     getAllUsersForOneRoom() {
       this.currentId = this.$route.params.id;
 
       axios
         .get(`http://localhost:3000/api/room/${this.currentId}`)
         .then(({ data }) => {
-          // console.log("one room with all users", data);
+          console.log("one room with all users", data);
           this.oneRoom = data.room;
           this.roomUsers = data.users;
-          // console.log("this is one room", this.oneRoom);
-          // console.log("all users in this room", this.roomUsers);
+          console.log("this is one room", this.oneRoom);
+          console.log("all users in this room", this.roomUsers);
         })
         .catch((err) => {
           console.log(err);
@@ -210,7 +219,9 @@ export default {
         .get(`http://localhost:3000/api/message/${this.currentId}`)
         .then(({ data }) => {
           this.allMessages = data;
-          // console.log("all massages",data)
+          console.log("all massages", data);
+          this.lastdate = data[data.length - 1].date;
+          this.beforelastDate = data[data.length - 2].date;
         })
         .catch((err) => {
           console.log(err);
@@ -218,16 +229,14 @@ export default {
     },
   },
 
-  created() {
-    this.socket.on(
-      "new-message",
-      function(data) {
-        console.log("hiiiiiiiiiiiiiiii");
-        this.newmessage.push(data);
-        console.log("message data", data);
-        console.log("all messages", this.newmessage);
-      }.bind(this)
-    );
+
+  mounted() {
+    this.socket.on("new-message", function(data) {
+      console.log("hiiiiiiiiiiiiiiii");
+      this.newmessage.push(data);
+      console.log("message data", data);
+      console.log("all messages", this.newmessage);
+    });
     this.getUser();
     this.getAllUsersForOneRoom();
     this.getAllMessagesForOneRoom();
@@ -242,15 +251,7 @@ export default {
   background-color: #f5f5f5;
 }
 /* all group container */
-.inputs_groups {
-  padding: 10px 10px;
-  color: white;
-  margin: 20px 20px 20px 13px;
-  height: 30px;
-  font-size: 13px;
-  width: 80%;
-  background: grey;
-}
+
 .group_logo {
   display: flex;
   justify-content: center;
@@ -292,70 +293,52 @@ export default {
 
 /*profile dropdown*/
 
-.dropbtn {
-  grid-area: dropbtn;
-
-  color: white;
-
-  font-size: 16px;
-  border: none;
-  width: 100%;
-  height: 100%;
+.drop {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
 }
 
-.dropup {
-  gap: 0;
-
-  display: grid;
-  grid: " photo dropbtn " 60px;
-  justify-items: center;
-  width: 100%;
-}
-
-.dropup-content {
+.drop-content {
   display: none;
   position: absolute;
-  background-color: #f1f1f1;
+  background-color: grey;
   min-width: 160px;
-  bottom: 30px;
-  right: 30px;
-  left: 30px;
+  bottom: 50px;
   z-index: 1;
   border-radius: 5px;
 }
 
-.dropup-content a {
+.drop-content a {
   color: black;
   padding: 12px 16px;
   text-decoration: none;
   display: block;
-  border-radius: 5px;
 }
 
-.dropup-content a :hover {
-  background-color: grey;
+.drop-content a :hover {
+  background-color: white;
+  cursor: pointer;
+  color: grey;
 }
 
-.dropup:hover .dropup-content {
+.drop:hover .drop-content {
   display: block;
+  cursor: pointer;
 }
+/* 
+.drop:hover .drop_button {
+  background-color:red;
+} */
+.tof {
+  width: 50px;
+  height: 50px;
 
-.dropup:hover .dropbtn {
-  background-color: grey;
-}
-.photo {
-  grid-area: photo;
-  width: 60px;
-  height: 60px;
-  margin-right: 3px;
   border-radius: 5px;
 }
-
 /* chat message */
-::-webkit-scrollbar-track {
-  box-shadow: inset 0 0 5px grey;
-  border-radius: 10px;
-}
+
 
 .lines {
   display: flex;
@@ -397,8 +380,7 @@ export default {
 
   border-radius: 5px;
 }
-.message_name {
-}
+
 .message_date {
   font-size: 10px;
 }
@@ -460,13 +442,13 @@ export default {
   padding: 0 10px;
   grid-area: channel-container;
   opacity: 0.5;
-  box-shadow: 0 1px 3px -1px rgba(0, 0, 0, 0.75);
+ box-shadow: inset 0 0 6px rgba(240, 234, 234, 0.3);
 }
 .title-container {
   grid-area: title-container;
   opacity: 0.5;
   opacity: 0.5;
-  box-shadow: 0 1px 3px -1px rgba(0, 0, 0, 0.75);
+ box-shadow: inset 0 0 6px rgba(240, 234, 234, 0.3);
   padding: 15px 0px 0px 40px;
 }
 .group-container {
@@ -477,7 +459,7 @@ export default {
   justify-content: center;
   grid-area: profile-container;
   opacity: 0.5;
-  box-shadow: 5px 1px 5px -1px rgba(0, 0, 0, 0.75);
+ box-shadow: inset 0 0 6px rgba(240, 234, 234, 0.3);
 }
 .new-message-container {
   display: flex;
