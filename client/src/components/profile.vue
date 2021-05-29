@@ -200,7 +200,7 @@ export default {
       } else {
         return this.showPhoto === false;
       }
-    },
+    },  
     click() {
       this.show = !this.show;
     },
@@ -212,10 +212,10 @@ export default {
     uploadPhoto(event) {
       event.preventDefault();
       this.selected = event.target.files[0];
-      console.log("ahahaha", this.selected);
+      console.log("ahahaha", this.selected);  
       const image = new FormData();
       image.append("file", this.selected);
-      image.append("upload_preset", "fvzq7qqo");
+      image.append("upload_preset", "tyfhc3lt");
       axios
         .post("https://api.cloudinary.com/v1_1/dkcwqbl9d/image/upload", image)
         .then(({ data }) => {

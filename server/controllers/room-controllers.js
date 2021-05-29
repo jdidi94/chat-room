@@ -18,13 +18,18 @@ exports.create_room= async function  (req, res)  {
  
 }
 exports.update_users= async function  (req, res)  {
-
   try {
-     console.log(req.body)
-   const room = await Room.updateOne({_id: req.params.id},{$set:{
-    users:req.body.users }})
-    console.log(User.user)
-     res.send(room);
+    if (req.body.message === true) {
+      const room = await Room.updateOne(
+        { _id: req.params.id },
+        { $addToSet: { users: req.body.users }})
+        res.send("you are a memeber");
+    } else {
+      const room = await Room.updateOne(
+        { _id: req.params.id },
+        { $pull: { users: req.body.users }});
+      res.send("it's removed");
+    }
   } catch (err) {
     res.send(err);
   }

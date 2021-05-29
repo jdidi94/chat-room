@@ -7,9 +7,11 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 import VueChatScroll from 'vue-chat-scroll'
+
 Vue.use(VueChatScroll)
 Vue.config.productionTip = false
-Vue.use(BootstrapVue)
+ Vue.use(BootstrapVue)
+
 
 Vue.use(IconsPlugin)
 new Vue({

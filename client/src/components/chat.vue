@@ -152,7 +152,6 @@ export default {
       description: "",
       show: false,
       search: "",
-      // socket: io("http://localhost:3000"),
     };
   },
   methods: {

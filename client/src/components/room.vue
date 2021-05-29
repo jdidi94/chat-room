@@ -1,6 +1,5 @@
 <template>
   <div class="chat-container">
-    
     <!-- channel container -->
     <div style="background:black" class="channel-container">
       <router-link to="/chat"
@@ -23,6 +22,7 @@
           type="button"
           @click="beAMemeber()"
           class="btn btn-outline-primary"
+          id="memberShip"
         >
           be a memeber
         </button>
@@ -43,7 +43,7 @@
         <img class="tof" :src="user.photo" />
         <button class="drop_button">{{ user.name }}</button>
         <div class="drop-content">
-           <router-link to="/profile">profile</router-link>
+          <router-link to="/profile">profile</router-link>
 
           <a @click="logOut()">log out</a>
         </div>
@@ -52,9 +52,9 @@
     <!-- chat form  -->
     <div style="background:black" class="chat-form" v-chat-scroll>
       <div class="lines">
-        <hr class="hr_left" />
-        <p class="time_line">{{ timeDiffrenceLines }}</p>
-        <hr class="hr_right" />
+        <!-- <hr class="hr_left" />
+        <p class="time_line">time</p>
+        <hr class="hr_right" /> -->
       </div>
 
       <div
@@ -97,7 +97,8 @@
 import axios from "axios";
 import moment from "moment";
 import swal from "sweetalert";
-import * as io from "socket.io-client";
+
+import io from "socket.io-client";
 export default {
   data() {
     return {
@@ -107,14 +108,18 @@ export default {
       allMessages: [],
       currentId: "",
       message: "",
-      newmessage: [],
-      socket: io("http://localhost:4000"),
+      date: "",
+      socket: io("http://localhost:3000"),
+
       lastdate: "",
       beforelastDate: "",
       showDate: false,
     };
   },
   methods: {
+    buttonState(){
+  
+    },
     getUser() {
       const token = localStorage.getItem("token");
       const headers = { headers: { Authorization: `Bearer ${token}` } };
@@ -123,18 +128,16 @@ export default {
       });
     },
     beAMemeber() {
-      if (this.roomUsers.includes(this.user._id)) {
-        swal("Oops!", "you are a already a member ", "error");
-      } else if (!this.roomUsers.includes(this.user._id)) {
-        const users = this.roomUsers;
-        users.push(this.user._id);
-        console.log("roomusers)", this.roomUsers);
-        console.log("this.currentUser._id)", this.user._id);
-        console.log("users", users);
+      console.log("this.roomUsers",this.roomUsers)
+      console.log("(user._id",this.user._id)
+      if (!this.oneRoom.users.includes(this.user._id)) {
+        
+        const data = {
+          message: true,
+          users: this.user._id,
+        };
         axios
-          .put(`http://localhost:3000/api/room/${this.oneRoom._id}`, {
-            users: users,
-          })
+          .put(`http://localhost:3000/api/room/${this.oneRoom._id}`, data)
           .then((data) => {
             console.log("this from the create memeber", data);
             this.getAllUsersForOneRoom();
@@ -143,25 +146,48 @@ export default {
           .catch((err) => {
             console.log(err);
           });
+      } else {
+        if (this.oneRoom.users.includes(this.user._id)) {
+         const  data = {
+            message: false,
+            users: this.user._id,
+          };
+          axios
+            .put(`http://localhost:3000/api/room/${this.oneRoom._id}`, data)
+            .then((data) => {
+              console.log("this from the create memeber", data);
+              this.getAllUsersForOneRoom();
+              swal("you are removed from this group ", "success");
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+        }
       }
     },
 
     create_message() {
       if (this.message === "") {
         swal("Oops!", "Empty fields", "error");
-      } else {
+      }else if(!this.oneRoom.users.includes(this.user._id)){
+       swal("Oops!", "You should be a member", "error");
+      } 
+      else {
         this.currentId = this.$route.params.id;
         const data = {
           user: this.user._id,
           room: this.currentId,
           message: this.message,
         };
-
+        // this.socket.emit('save-message',{message:this.message});
+        // console.log("heyyyyy",data)
+        // console.log(this.socket)
         axios
           .post(`http://localhost:3000/api/message/`, data)
           .then(({ data }) => {
             this.message = "";
             console.log("message posted", data);
+
             this.getAllMessagesForOneRoom();
             this.socket.emit("save-message", data);
           })
@@ -190,18 +216,23 @@ export default {
         return moment(date).format("MMMM Do YYYY, h:mm:ss a");
       }
     },
- 
+
     getAllUsersForOneRoom() {
       this.currentId = this.$route.params.id;
 
       axios
         .get(`http://localhost:3000/api/room/${this.currentId}`)
         .then(({ data }) => {
-          console.log("one room with all users", data);
+          // console.log("one room with all users", data);
           this.oneRoom = data.room;
           this.roomUsers = data.users;
-          console.log("this is one room", this.oneRoom);
-          console.log("all users in this room", this.roomUsers);
+              if (this.oneRoom.users.includes(this.user._id)) {
+           document.getElementById("memberShip").innerHTML ="You are a member";
+      }else {
+         document.getElementById("memberShip").innerHTML ="be a memeber";
+      }
+          // console.log("this is one room", this.oneRoom);
+          // console.log("all users in this room", this.roomUsers);
         })
         .catch((err) => {
           console.log(err);
@@ -219,7 +250,7 @@ export default {
         .get(`http://localhost:3000/api/message/${this.currentId}`)
         .then(({ data }) => {
           this.allMessages = data;
-          console.log("all massages", data);
+          // console.log("all massages", data);
           this.lastdate = data[data.length - 1].date;
           this.beforelastDate = data[data.length - 2].date;
         })
@@ -229,14 +260,15 @@ export default {
     },
   },
 
-
   mounted() {
-    this.socket.on("new-message", function(data) {
-      console.log("hiiiiiiiiiiiiiiii");
-      this.newmessage.push(data);
-      console.log("message data", data);
-      console.log("all messages", this.newmessage);
-    });
+    // this.socket.on('new-message', data=> {
+    //   console.log(data)
+    //   this.allMessages.push(data);
+
+    //   console.log("message data", data);
+    //   console.log("all messages", this.newmessage);
+    // });
+
     this.getUser();
     this.getAllUsersForOneRoom();
     this.getAllMessagesForOneRoom();
@@ -306,7 +338,7 @@ export default {
   background-color: grey;
   min-width: 160px;
   bottom: 50px;
-  z-index: 1;
+  z-index: 4;
   border-radius: 5px;
 }
 
@@ -338,7 +370,6 @@ export default {
   border-radius: 5px;
 }
 /* chat message */
-
 
 .lines {
   display: flex;
@@ -442,13 +473,13 @@ export default {
   padding: 0 10px;
   grid-area: channel-container;
   opacity: 0.5;
- box-shadow: inset 0 0 6px rgba(240, 234, 234, 0.3);
+  box-shadow: inset 0 0 6px rgba(240, 234, 234, 0.3);
 }
 .title-container {
   grid-area: title-container;
   opacity: 0.5;
   opacity: 0.5;
- box-shadow: inset 0 0 6px rgba(240, 234, 234, 0.3);
+  box-shadow: inset 0 0 6px rgba(240, 234, 234, 0.3);
   padding: 15px 0px 0px 40px;
 }
 .group-container {
@@ -459,7 +490,7 @@ export default {
   justify-content: center;
   grid-area: profile-container;
   opacity: 0.5;
- box-shadow: inset 0 0 6px rgba(240, 234, 234, 0.3);
+  box-shadow: inset 0 0 6px rgba(240, 234, 234, 0.3);
 }
 .new-message-container {
   display: flex;
