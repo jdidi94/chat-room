@@ -8,8 +8,12 @@ const cors = require("cors");
 const morgan = require("morgan");
 const http = require("http");
 const server = http.createServer(app);
-const socketio = require("socket.io");
-const io = socketio(server);
+const socketio = require("socket.io")(server, {
+  cors: {
+    origin: "http://localhost:8081",
+    methods: ["GET", "POST"]
+  }
+});
 
 app.use(morgan("combined"));
 app.use(cors());
@@ -25,14 +29,15 @@ const db = mongoose.connect(
     console.log("hey i'm connected");
   }
 );
-io.on("connection", (socket) => {
-//  console.log(socket)
-  socket.on("save-message",data =>{
+app.use(bodyParser.json());
+socketio.on("connection", (socket) => {
+console.log("hello")
+  socket.on("save-message",(data)=>{
     console.log(data);
-    io.emit("new-message", data );
+    socketio.emit("new-message",data);
   });
 });
-app.use(bodyParser.json());
+
 app.use("/api/user", userRoutes);
 app.use("/api/room", roomRoutes);
 app.use("/api/message", messageRoutes);

@@ -98,7 +98,7 @@ import axios from "axios";
 import moment from "moment";
 import swal from "sweetalert";
 
-import io from "socket.io-client";
+import * as  io from "socket.io-client";
 export default {
   data() {
     return {
@@ -117,9 +117,7 @@ export default {
     };
   },
   methods: {
-    buttonState(){
-  
-    },
+    buttonState() {},
     getUser() {
       const token = localStorage.getItem("token");
       const headers = { headers: { Authorization: `Bearer ${token}` } };
@@ -128,10 +126,9 @@ export default {
       });
     },
     beAMemeber() {
-      console.log("this.roomUsers",this.roomUsers)
-      console.log("(user._id",this.user._id)
+      console.log("this.roomUsers", this.roomUsers);
+      console.log("(user._id", this.user._id);
       if (!this.oneRoom.users.includes(this.user._id)) {
-        
         const data = {
           message: true,
           users: this.user._id,
@@ -148,7 +145,7 @@ export default {
           });
       } else {
         if (this.oneRoom.users.includes(this.user._id)) {
-         const  data = {
+          const data = {
             message: false,
             users: this.user._id,
           };
@@ -169,19 +166,24 @@ export default {
     create_message() {
       if (this.message === "") {
         swal("Oops!", "Empty fields", "error");
-      }else if(!this.oneRoom.users.includes(this.user._id)){
-       swal("Oops!", "You should be a member", "error");
-      } 
-      else {
+      } else if (!this.oneRoom.users.includes(this.user._id)) {
+        swal("Oops!", "You should be a member", "error");
+      } else {
         this.currentId = this.$route.params.id;
         const data = {
           user: this.user._id,
           room: this.currentId,
           message: this.message,
         };
+        const data1 = {
+          send: this.user,
+          room: this.currentId,
+          message: this.message,
+        };
+        this.socket.emit("save-message", data1);
         // this.socket.emit('save-message',{message:this.message});
         // console.log("heyyyyy",data)
-        // console.log(this.socket)
+        console.log(this.socket.connected);
         axios
           .post(`http://localhost:3000/api/message/`, data)
           .then(({ data }) => {
@@ -189,7 +191,6 @@ export default {
             console.log("message posted", data);
 
             this.getAllMessagesForOneRoom();
-            this.socket.emit("save-message", data);
           })
           .catch((err) => {
             console.log(err);
@@ -226,13 +227,12 @@ export default {
           // console.log("one room with all users", data);
           this.oneRoom = data.room;
           this.roomUsers = data.users;
-              if (this.oneRoom.users.includes(this.user._id)) {
-           document.getElementById("memberShip").innerHTML ="You are a member";
-      }else {
-         document.getElementById("memberShip").innerHTML ="be a memeber";
-      }
-          // console.log("this is one room", this.oneRoom);
-          // console.log("all users in this room", this.roomUsers);
+          if (this.oneRoom.users.includes(this.user._id)) {
+            document.getElementById("memberShip").innerHTML =
+              "You are a member";
+          } else {
+            document.getElementById("memberShip").innerHTML = "be a memeber";
+          }
         })
         .catch((err) => {
           console.log(err);
@@ -259,19 +259,19 @@ export default {
         });
     },
   },
-
+  created() {},
   mounted() {
-    // this.socket.on('new-message', data=> {
-    //   console.log(data)
-    //   this.allMessages.push(data);
-
-    //   console.log("message data", data);
-    //   console.log("all messages", this.newmessage);
-    // });
-
     this.getUser();
     this.getAllUsersForOneRoom();
     this.getAllMessagesForOneRoom();
+    this.socket.on("new-message", (data) => {
+      if (data.room===this.currentId){
+      console.log(data);
+      this.allMessages.push(data);
+
+      // console.log("message data", this.socket.origin);
+      console.log("all messages", this.allMessages);
+    }});
   },
 };
 </script>
